@@ -2,6 +2,7 @@
 import tempfile
 import os
 import unittest
+import re
 import subprocess
 import numpy as np
 from click.testing import CliRunner
@@ -27,8 +28,9 @@ class MainRandomTestCase(unittest.TestCase):
         self.tmpfiles = []
 
     def tearDown(self):
-        for filepath in self.tmpfiles:
+        for filehandle, filepath in self.tmpfiles:
             if os.path.exists(filepath):
+                os.close(filehandle)
                 os.remove(filepath)
 
     def test_compute(self):
@@ -41,13 +43,15 @@ class MainRandomTestCase(unittest.TestCase):
             '-r', relfile,
             '-g', '1:2:3',
             labfile])
-        self.assertEqual(result.output.strip().replace(" ", ""),
-            ntcireval_formatting(res))
+        self.assertEqual(
+            re.split(r'\r?\n', result.output.strip().replace(" ", "")),
+            re.split(r'\r?\n', ntcireval_formatting(res)),
+        )
         logger.info("\n" + "\n".join(res.split("\n")))
         logger.info("\n" + "\n".join(result.output.split("\n")))
 
     def _run_ntcireval(self, relfile, labfile):
-        args = [os.path.join(os.path.dirname(__file__), 
+        args = [os.path.join(os.path.dirname(__file__),
             '..', 'NTCIREVAL', 'ntcir_eval'),
             'compute',
             '-r', relfile,
@@ -69,8 +73,8 @@ class MainRandomTestCase(unittest.TestCase):
         return tf
 
     def _generate_tmpfile(self):
-        _, tf = tempfile.mkstemp()
-        self.tmpfiles.append(tf)
+        tfh, tf = tempfile.mkstemp()
+        self.tmpfiles.append((tfh, tf))
         return tf
 
     def _generate_random_res_file(self):
