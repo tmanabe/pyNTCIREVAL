@@ -7,7 +7,28 @@ CONTINUOUS_GRADE = re.compile("^L([0-9]+\.[0-9]+)$")
 SEP_LABELLED_RANKED_LIST = ' '
 DEFAULT_CUTOFFS = [1000]
 
+class continuous_grade(dict):
+    def __new__(self, max):
+        self = dict.__new__(self)
+        self[-1] = max
+        return self
+
+    def __missing__(self, level):
+        grade = level + 1.0
+        if grade <= 0 or self[-1] < grade:
+            raise ValueError()
+        return grade
+
+    def index(self, grade):
+        if grade <= 0 or self[-1] < grade:
+            raise ValueError()
+        return grade - 1.0
+
+
 def read_grades(string):
+    if 0 < len(string) and string[0] == ':':
+        result = continuous_grade(max=float(string[1:]))
+        return result
     result = _read_ints(string, ':', '-g')
     _validate_order(string, result, '-g')
     _validate_positive(string, result, '-g')
@@ -65,10 +86,13 @@ def count_judged(maxrel, qrels):
     - the number of judged X-rel docs (including 0-rel=judged nonrel)
     - the total number of judged rel docs
     '''
-    xrelnum = [0] * (maxrel+1)
+    xrelnum, jrelnum = {}, 0
     for grade in qrels.values():
+        if grade not in xrelnum:
+            xrelnum[grade] = 0
         xrelnum[grade] += 1
-    jrelnum = sum(xrelnum[1:])
+        if 0 < grade:
+            jrelnum += 1
     return xrelnum, jrelnum
 
 def output_labelled_ranked_list(j, truncate, qrels, sysdoclab):

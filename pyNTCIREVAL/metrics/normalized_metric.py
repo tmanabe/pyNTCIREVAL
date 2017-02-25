@@ -9,7 +9,7 @@ class NormalizedMetric(Metric):
 
     def ideal_ranked_list(self):
         result = []
-        for grade, num in enumerate(self.xrelnum):
+        for grade, num in self.xrelnum.items():
             result += [(i, grade)
                 for i in range(len(result), len(result)+num)]
         result = sorted(result, key=lambda x: x[1], reverse=True)

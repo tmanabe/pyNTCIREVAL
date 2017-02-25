@@ -2,7 +2,10 @@ class Metric(object):
 
     def __init__(self, xrelnum, grades):
         self.xrelnum = xrelnum
-        self.jrelnum = sum(xrelnum[1:])
+        self.jrelnum = 0
+        for grade, count in self.xrelnum.items():
+            if 0 < grade:
+                self.jrelnum += count
         self.grades = grades
         self.maxgrade = self.grades[-1]
         self.cutoff = None
@@ -52,7 +55,7 @@ class Metric(object):
 
     def _get_ideal_level_ranked_list(self):
         result = []
-        for grade, num in enumerate(self.xrelnum):
+        for grade, num in self.xrelnum.items():
             if grade == 0:
                 continue
             result += [self.grades[grade-1] for i in range(num)]

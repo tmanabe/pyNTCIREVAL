@@ -61,7 +61,8 @@ def label(ranked_list, r, j, ec, sep, truncate):
     help='''A rel (relevance assessments) file''')
 @click.option('-g', metavar='<gainL1:gainL2...>', required=True,
     help='''How many relevance levels there are (excluding L0) '''\
-    + '''and the gain value for each relevance level.''')
+    + '''and the gain value for each relevance level. Indicate '''\
+    + '''maximum grade for continuous grade (e.g., `-g :1.5`).''')
 @click.option('--verbose', '-v', is_flag=True, default=False,
     help='Verbose output.')
 @click.option('-j', is_flag=True, default=False,
@@ -101,8 +102,9 @@ def compute(labelled_ranked_list, r, g, verbose, j, ec, gap,
 
     # parsing parameters
     grades = read_grades(g)
+    continuous = isinstance(grades, dict)
     maxrel = len(grades)
-    stops = read_stops(s) if len(s.strip()) > 0 else list(grades)
+    stops = read_stops(s) if len(s.strip()) > 0 else grades
     cutoffs = read_cutoffs(cutoffs)
     logb = np.exp(1) if logb == 0 else logb # if logb == 0, then e
 
@@ -123,12 +125,13 @@ def compute(labelled_ranked_list, r, g, verbose, j, ec, gap,
         xrelnum, jrelnum)
 
     # verbose
-    logger.debug("%s # Grades\t" % out + ', '.join(['L%s:%s' % (i+1, grade)
-        for i, grade in enumerate(grades)]))
-    logger.debug("%s # Stops\t" % out + ', '.join(['L%s:%s' % (i+1, stop)
-        for i, stop in enumerate(stops)]))
-    logger.debug("%s # X-Rel nums\t" % out + ', '.join(['L%s:%s' % (i, num)
-        for i, num in enumerate(xrelnum)]))
+    if not continuous:
+        logger.debug("%s # Grades\t" % out + ', '.join(['L%s:%s' % (i+1, grade)
+            for i, grade in enumerate(grades)]))
+        logger.debug("%s # Stops\t" % out + ', '.join(['L%s:%s' % (i+1, stop)
+            for i, stop in enumerate(stops)]))
+        logger.debug("%s # X-Rel nums\t" % out + ', '.join(['L%s:%s' % (i, num)
+            for i, num in enumerate(xrelnum)]))
 
     # output
     print("%s # syslen=%d jrel=%d jnonrel=%d"
@@ -139,26 +142,34 @@ def compute(labelled_ranked_list, r, g, verbose, j, ec, gap,
 
     # compute metrics
     metrics = []
-    metrics.append(RR(xrelnum, grades))
-    metrics.append(OMeasure(xrelnum, grades, beta))
-    metrics.append(PMeasure(xrelnum, grades, beta))
-    metrics.append(PPlusMeasure(xrelnum, grades, beta))
-    metrics.append(AP(xrelnum, grades))
-    metrics.append(QMeasure(xrelnum, grades, beta))
-    metrics.append(NCUguP(xrelnum, grades, stops))
-    metrics.append(NCUguBR(xrelnum, grades, stops, beta))
-    metrics.append(NCUrbP(xrelnum, grades, gamma))
-    metrics.append(NCUrbBR(xrelnum, grades, gamma, beta))
-    metrics.append(RBP(xrelnum, grades, rbp))
-    metrics.append(ERR(xrelnum, grades))
-    for cutoff in cutoffs:
-        metrics.append(AP(xrelnum, grades, cutoff))
-        metrics.append(QMeasure(xrelnum, grades, beta, cutoff))
-        metrics.append(nDCG(xrelnum, grades, logb, cutoff))
-        metrics.append(MSnDCG(xrelnum, grades, cutoff))
-        metrics.append(Precision(xrelnum, grades, cutoff))
-        metrics.append(nERR(xrelnum, grades, cutoff))
-        metrics.append(Hit(xrelnum, grades, cutoff))
+    if continuous:  # The other metrics are not tested...
+        metrics.append(AP(xrelnum, grades))
+        for cutoff in cutoffs:
+            metrics.append(AP(xrelnum, grades, cutoff))
+            metrics.append(nDCG(xrelnum, grades, logb, cutoff))
+            metrics.append(MSnDCG(xrelnum, grades, cutoff))
+            metrics.append(Precision(xrelnum, grades, cutoff))
+    else:
+        metrics.append(RR(xrelnum, grades))
+        metrics.append(OMeasure(xrelnum, grades, beta))
+        metrics.append(PMeasure(xrelnum, grades, beta))
+        metrics.append(PPlusMeasure(xrelnum, grades, beta))
+        metrics.append(AP(xrelnum, grades))
+        metrics.append(QMeasure(xrelnum, grades, beta))
+        metrics.append(NCUguP(xrelnum, grades, stops))
+        metrics.append(NCUguBR(xrelnum, grades, stops, beta))
+        metrics.append(NCUrbP(xrelnum, grades, gamma))
+        metrics.append(NCUrbBR(xrelnum, grades, gamma, beta))
+        metrics.append(RBP(xrelnum, grades, rbp))
+        metrics.append(ERR(xrelnum, grades))
+        for cutoff in cutoffs:
+            metrics.append(AP(xrelnum, grades, cutoff))
+            metrics.append(QMeasure(xrelnum, grades, beta, cutoff))
+            metrics.append(nDCG(xrelnum, grades, logb, cutoff))
+            metrics.append(MSnDCG(xrelnum, grades, cutoff))
+            metrics.append(Precision(xrelnum, grades, cutoff))
+            metrics.append(nERR(xrelnum, grades, cutoff))
+            metrics.append(Hit(xrelnum, grades, cutoff))
 
     for metric in metrics:
         score = metric.compute(sysdoclab)

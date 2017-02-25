@@ -18,7 +18,7 @@ def p_gu(stops):
         if grade > 0:
             return stops[grade-1]\
                 / sum([num * stops[g-1]
-                    for g, num in enumerate(self.xrelnum) if g > 0])
+                    for g, num in self.xrelnum.items() if g > 0])
         else:
             return 0.0
     return func
