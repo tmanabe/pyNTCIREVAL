@@ -87,6 +87,7 @@ def count_judged(maxrel, qrels):
     - the total number of judged rel docs
     '''
     xrelnum, jrelnum = {}, 0
+    xrelnum[0] = 0
     for grade in qrels.values():
         if grade not in xrelnum:
             xrelnum[grade] = 0

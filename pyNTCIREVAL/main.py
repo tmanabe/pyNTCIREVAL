@@ -136,9 +136,9 @@ def compute(labelled_ranked_list, r, g, verbose, j, ec, gap,
     # output
     print("%s # syslen=%d jrel=%d jnonrel=%d"
         % (out, syslen, jrelnum, xrelnum[0]))
-    print("%s # r1=%d rp=%d"
-        % (out, Metric.find_first_rel_rank(sysdoclab),
-            Metric.find_first_max_rank(sysdoclab)))
+    print("%s # r1=%s rp=%s"
+        % (out, str(Metric.find_first_rel_rank(sysdoclab)),
+            str(Metric.find_first_max_rank(sysdoclab))))
 
     # compute metrics
     metrics = []
