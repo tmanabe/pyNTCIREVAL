@@ -3,6 +3,7 @@ import csv
 import re
 
 GRADE = re.compile("^L([0-9]+)$")
+CONTINUOUS_GRADE = re.compile("^L([0-9]+\.[0-9]+)$")
 SEP_LABELLED_RANKED_LIST = ' '
 DEFAULT_CUTOFFS = [1000]
 
@@ -149,10 +150,12 @@ def _validate_positive(string, values, name):
             "'%s' for option '%s' must be positive" % (string, name))
 
 def _parse_grade(grade, idx):
+    m = CONTINUOUS_GRADE.match(grade)
+    if m:
+        return float(m.group(1))
     m = GRADE.match(grade)
     if m:
-        grade = int(m.group(1))
+        return int(m.group(1))
     else:
         raise Exception(
             "An invalid grade at Line %s" % (idx+1))
-    return grade
