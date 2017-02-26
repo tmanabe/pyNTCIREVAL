@@ -10,17 +10,17 @@ DEFAULT_CUTOFFS = [1000]
 class continuous_grade(dict):
     def __new__(self, max):
         self = dict.__new__(self)
-        self[-1] = max
+        self.max = max
         return self
 
     def __missing__(self, level):
         grade = level + 1.0
-        if grade <= 0 or self[-1] < grade:
+        if grade <= 0 or self.max < grade:
             raise ValueError()
         return grade
 
     def index(self, grade):
-        if grade <= 0 or self[-1] < grade:
+        if grade <= 0 or self.max < grade:
             raise ValueError()
         return grade - 1.0
 

@@ -32,11 +32,10 @@ dummy04 L0.5
     def test_continuous_grade_forward(self):
         cg = continuous_grade(max=1.5)
         try:
-            cg[-1.5]
+            cg[-1.0]
             raise Exception
         except ValueError:
             pass
-        self.assertEqual(1.5, cg[-1])
         self.assertEqual(0.5, cg[-0.5])
         self.assertEqual(1.0, cg[0.0])
         self.assertEqual(1.5, cg[0.5])
@@ -71,6 +70,16 @@ dummy04 L0.5
             p('sample_continuous.lab')])
         self.assertEqual(result.output.strip().replace(" ", ""),
             ntcireval_formatting(r("test_continuous")))
+
+    def test_compute_g1(self):  # An edge case
+        self.maxDiff = None
+        runner = CliRunner()
+        result = runner.invoke(cli, ['compute',
+            '-r', p('sample_continuous_g1.rel'),
+            '-g', ':1.0',
+            p('sample_continuous_g1.lab')])
+        self.assertEqual(result.output.strip().replace(" ", ""),
+            ntcireval_formatting(r("test_continuous_g1")))
 
     def test_compute_cutoff(self):
         runner = CliRunner()

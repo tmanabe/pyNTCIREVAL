@@ -7,7 +7,7 @@ class Metric(object):
             if 0 < grade:
                 self.jrelnum += count
         self.grades = grades
-        self.maxgrade = self.grades[-1]
+        self.maxgrade = grades.max if isinstance(grades, dict) else grades[-1]
         self.cutoff = None
 
     def compute(self, ranked_list):
